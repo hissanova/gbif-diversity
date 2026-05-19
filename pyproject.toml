@@ -1,0 +1,54 @@
+[project]
+name = "gbif-diversity"
+version = "0.1.0"
+description = "Species diversity analysis and visualization using GBIF data"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "geopandas>=1.1.3",
+    "ipykernel>=7.2.0",
+    "jupyter>=1.1.1",
+    "matplotlib>=3.10.9",
+    "numpy>=2.2.6",
+    "pandas>=2.3.3",
+    "plotly>=6.7.0",
+    "pyarrow>=24.0.0",
+    "pygbif>=0.6.6",
+    "python-dotenv>=1.2.2",
+    "requests>=2.33.1",
+    "seaborn>=0.13.2",
+]
+
+[dependency-groups]
+dev = [
+    "pyright",
+    "ruff",
+    "pytest",
+    "nbstripout>=0.9.1",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+src = ["src"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = []
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.pyright]
+pythonVersion = "3.12"
+typeCheckingMode = "basic"
+venvPath = "."
+venv = ".venv"
+include = ["src", "notebooks"]
+exclude = [
+    "**/__pycache__",
+    ".venv",
+    "data",
+    "outputs",
+]
