@@ -53,7 +53,7 @@ gbif-okinawa-plant-diversity/
 │   ├── download_gbif.py
 │   ├── preprocess.py
 │   ├── compute_indices.py
-│   └── plot_maps.py
+│   └── plot_map.py
 ├── README.md
 └── pyproject.toml
 ```
@@ -90,15 +90,20 @@ python src/compute_indices.py \
 ```
 5. 地図出力
 ```shell
-python src/plot_maps.py \
-  --input-path data/processed/grid_5km_diversity.parquet \
-  --output-dir outputs/maps/grid_5km \
+uv run python src/plot_map.py \
+  data/processed/diversity-indices-grid5000-N10000.parquet \
+  --output-dir outputs/maps \
   --columns observation_count,species_richness,shannon_entropy,pielou_evenness,hill_q1_0,hill_q2_0
 ```
+`outputs/maps/diversity-indices-grid5000-N10000/diversity_indices.html` に、すべての指標を
+上部のボタンで切り替えられるインタラクティブ地図が出力されます。
+
 PNGも出す場合：
 ```shell
-python src/plot_maps.py \
-  --input-path data/processed/grid_5km_diversity.parquet \
-  --output-dir outputs/maps/grid_5km \
+uv run python src/plot_map.py \
+  data/processed/diversity-indices-grid5000-N10000.parquet \
+  --output-dir outputs/maps \
   --write-png
 ```
+PNGは指標ごとに個別のファイルとして出力されます。従来形式の指標別HTMLも必要な場合は、
+`--write-separate-html` を指定してください。
