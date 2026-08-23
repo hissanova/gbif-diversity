@@ -17,7 +17,7 @@ def main(
     ),
     center_lat: float = typer.Option(26.5),
     center_lon: float = typer.Option(127.9),
-    zoom: float = typer.Option(6.0),
+    zoom: int = typer.Option(6),
     opacity: float = typer.Option(0.7),
     map_style: str = typer.Option("open-street-map"),
     write_html: bool = typer.Option(True),

@@ -10,7 +10,6 @@
 - Shannon entropy
 - Pielou's evenness
 - Hill number
-- 植物相クラスタリング
 
 単なる観測点の地図化ではなく、種数・均等性・実効種数・群集構成の違いを比較することで、地域ごとの植物多様性の見え方を探索することを目的としています。
 
@@ -19,7 +18,6 @@
 - GBIFの植物出現データを取得し、再利用可能な形で保存する
 - 市町村単位またはグリッド単位で植物多様性指標を計算する
 - 多様性指標ごとの空間パターンの違いを可視化する
-- 植物種構成に基づいて地域をクラスタリングする
 - 将来的に、植生・環境要因・生態系安定性の関係を分析するための基盤を作る
 
 ## 使用データ
@@ -55,7 +53,6 @@ gbif-okinawa-plant-diversity/
 │   ├── download_gbif.py
 │   ├── preprocess.py
 │   ├── compute_indices.py
-│   ├── compute_clusters.py
 │   └── plot_maps.py
 ├── README.md
 └── pyproject.toml
