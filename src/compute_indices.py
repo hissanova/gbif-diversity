@@ -115,9 +115,9 @@ def main(
     if output_path is None:
         output_dir = Path("../data/processed")
         if mode == "municipality":
-            fname = f"diversity-indices-municipality-{sample_size}.parquet"
+            fname = f"diversity-indices-municipality-N{sample_size}.parquet"
         elif mode == "grid":
-            fname = f"diversity-indices-grid{grid_size_m}-{sample_size}.parquet"
+            fname = f"diversity-indices-grid{grid_size_m}-N{sample_size}.parquet"
         output_path = output_dir /  fname
     output_path.parent.mkdir(parents=True, exist_ok=True)
     
