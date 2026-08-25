@@ -3,7 +3,7 @@ from typing import cast
 import geopandas as gpd
 import plotly.graph_objects as go
 from shapely.geometry import box
-from src.plot_map import build_toggle_map, write_separate_maps
+from src.plot_map import build_regional_png_figure, build_toggle_map, write_separate_maps
 
 
 def test_build_toggle_map_uses_one_trace_and_updates_each_metric() -> None:
@@ -63,7 +63,7 @@ def test_write_separate_maps_keeps_per_metric_png_output(monkeypatch, tmp_path) 
     written_paths = []
     monkeypatch.setattr(
         "plotly.graph_objects.Figure.write_image",
-        lambda self, path, **kwargs: written_paths.append(path),
+        lambda self, path, **kwargs: written_paths.append((path, kwargs)),
     )
 
     write_separate_maps(
@@ -81,6 +81,32 @@ def test_write_separate_maps_keeps_per_metric_png_output(monkeypatch, tmp_path) 
     )
 
     assert written_paths == [
-        tmp_path / "observation_count.png",
-        tmp_path / "species_richness.png",
+        (tmp_path / "observation_count_regions.png", {"width": 1800, "height": 1200}),
+        (tmp_path / "species_richness_regions.png", {"width": 1800, "height": 1200}),
     ]
+
+
+def test_build_regional_png_figure_uses_shared_coloraxis() -> None:
+    gdf = gpd.GeoDataFrame(
+        {"unit_id": ["a", "b"], "shannon_entropy": [1.25, 2.5]},
+        geometry=[box(127, 26, 127.1, 26.1), box(124, 24, 124.1, 24.1)],
+        crs="EPSG:4326",
+    )
+
+    fig = build_regional_png_figure(gdf, gdf.__geo_interface__, "unit_id", "shannon_entropy")
+    traces = cast(tuple[go.Choroplethmap, ...], fig.data)
+
+    assert len(traces) == 4
+    assert [trace.subplot for trace in traces] == ["map", "map2", "map3", "map4"]
+    assert all(trace.coloraxis == "coloraxis" for trace in traces)
+    assert all(list(cast(tuple[float, ...], trace.z)) == [1.25, 2.5] for trace in traces)
+    assert fig.layout.coloraxis.cmin == 1.25
+    assert fig.layout.coloraxis.cmax == 2.5
+    assert fig.layout.coloraxis.colorbar.title.text == "Shannon entropy"
+    assert fig.layout.map.style == "carto-positron"
+    assert list(fig.layout.map.domain.x) == [0.0, 0.58]
+    assert list(fig.layout.map2.domain.y) == [0.53, 0.95]
+    assert list(fig.layout.map3.domain.x) == [0.6, 0.76]
+    assert list(fig.layout.map4.domain.x) == [0.78, 0.94]
+    assert [annotation.text for annotation in fig.layout.annotations] == ["沖縄本島", "八重山", "宮古", "大東"]
+    assert not fig.layout.updatemenus

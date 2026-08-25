@@ -22,6 +22,33 @@ METRIC_DISPLAY = {
 INTEGER_METRICS = {"observation_count", "species_richness"}
 DEFAULT_OUTPUT_DIR = Path("outputs/maps")
 
+REGIONAL_MAPS = {
+    "map": {
+        "label": "沖縄本島",
+        "domain": {"x": [0.00, 0.58], "y": [0.05, 0.95]},
+        "center": {"lat": 26.95, "lon": 127.55},
+        "zoom": 7.7,
+    },
+    "map2": {
+        "label": "八重山",
+        "domain": {"x": [0.60, 0.94], "y": [0.53, 0.95]},
+        "center": {"lat": 24.75, "lon": 123.80},
+        "zoom": 6.8,
+    },
+    "map3": {
+        "label": "宮古",
+        "domain": {"x": [0.60, 0.76], "y": [0.05, 0.48]},
+        "center": {"lat": 24.80, "lon": 125.10},
+        "zoom": 7.6,
+    },
+    "map4": {
+        "label": "大東",
+        "domain": {"x": [0.78, 0.94], "y": [0.05, 0.48]},
+        "center": {"lat": 25.20, "lon": 131.25},
+        "zoom": 7.3,
+    },
+}
+
 
 def _metric_settings(column: str) -> dict[str, str]:
     """Return labels and hover formatting for a metric column."""
@@ -114,6 +141,100 @@ def build_toggle_map(
     return fig
 
 
+def build_regional_png_figure(
+    gdf: gpd.GeoDataFrame,
+    geojson: dict[str, Any],
+    id_col: str,
+    column: str,
+    opacity: float = 0.85,
+    map_style: str = "carto-positron",
+) -> go.Figure:
+    """Build a static four-panel regional map with one shared color scale."""
+    settings = _metric_settings(column)
+    values = gdf[column].tolist()
+    finite_values = [float(value) for value in values if value is not None and value == value]
+    if not finite_values:
+        raise ValueError(f"Metric column '{column}' has no values to plot.")
+
+    color_min = min(finite_values)
+    color_max = max(finite_values)
+    if color_min == color_max:
+        color_min -= 0.5
+        color_max += 0.5
+
+    locations = gdf[id_col].astype(str).tolist()
+    fig = go.Figure()
+    for subplot_name in REGIONAL_MAPS:
+        fig.add_trace(
+            go.Choroplethmap(
+                geojson=geojson,
+                locations=locations,
+                z=values,
+                subplot=subplot_name,
+                coloraxis="coloraxis",
+                marker={
+                    "opacity": opacity,
+                    "line": {"color": "rgba(255,255,255,0.85)", "width": 0.6},
+                },
+                hoverinfo="skip",
+                name=settings["display"],
+            )
+        )
+
+    map_layouts = {
+        subplot_name: {
+            "style": map_style,
+            "domain": config["domain"],
+            "center": config["center"],
+            "zoom": config["zoom"],
+        }
+        for subplot_name, config in REGIONAL_MAPS.items()
+    }
+    annotations = [
+        {
+            "text": config["label"],
+            "x": sum(config["domain"]["x"]) / 2,
+            "y": config["domain"]["y"][1] + 0.005,
+            "xref": "paper",
+            "yref": "paper",
+            "xanchor": "center",
+            "yanchor": "bottom",
+            "showarrow": False,
+            "font": {"size": 19, "color": "#222"},
+        }
+        for config in REGIONAL_MAPS.values()
+    ]
+
+    layout_updates: dict[str, Any] = {
+        **map_layouts,
+        "coloraxis": {
+            "colorscale": "Viridis",
+            "cmin": color_min,
+            "cmax": color_max,
+            "colorbar": {
+                "title": {"text": settings["display"], "side": "right"},
+                "x": 0.965,
+                "y": 0.5,
+                "len": 0.88,
+                "thickness": 24,
+            },
+        },
+        "title": {
+            "text": settings["display"],
+            "x": 0.47,
+            "xanchor": "center",
+            "y": 0.995,
+            "yanchor": "top",
+            "font": {"size": 28},
+        },
+        "annotations": annotations,
+        "margin": {"r": 55, "t": 75, "l": 10, "b": 10},
+        "showlegend": False,
+    }
+    fig.update_layout(layout_updates)
+    return fig
+
+
 def write_separate_maps(
     gdf: gpd.GeoDataFrame,
     geojson: dict[str, Any],
@@ -128,29 +249,34 @@ def write_separate_maps(
     write_html: bool = False,
     write_png: bool = False,
 ) -> None:
-    """Write legacy per-metric HTML and/or static PNG maps."""
+    """Write legacy per-metric HTML and/or regional static PNG maps."""
     for column in columns:
-        fig = build_toggle_map(
-            gdf=gdf,
-            geojson=geojson,
-            id_col=id_col,
-            columns=[column],
-            center_lat=center_lat,
-            center_lon=center_lon,
-            zoom=zoom,
-            opacity=opacity,
-            map_style=map_style,
-        )
-        fig.update_layout(updatemenus=[])
-
         if write_html:
+            fig = build_toggle_map(
+                gdf=gdf,
+                geojson=geojson,
+                id_col=id_col,
+                columns=[column],
+                center_lat=center_lat,
+                center_lon=center_lon,
+                zoom=zoom,
+                opacity=opacity,
+                map_style=map_style,
+            )
+            fig.update_layout(updatemenus=[])
             html_path = output_dir / f"{column}.html"
             fig.write_html(html_path)
             print(f"Saved: {html_path}")
 
         if write_png:
-            png_path = output_dir / f"{column}.png"
-            fig.write_image(png_path, width=1200, height=900)
+            fig = build_regional_png_figure(
+                gdf=gdf,
+                geojson=geojson,
+                id_col=id_col,
+                column=column,
+            )
+            png_path = output_dir / f"{column}_regions.png"
+            fig.write_image(png_path, width=1800, height=1200)
             print(f"Saved: {png_path}")
 
 

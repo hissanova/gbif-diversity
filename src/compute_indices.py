@@ -105,7 +105,7 @@ def compute_metrics(joined: gpd.GeoDataFrame, unit_col: str, q_values: list[floa
 def main(
     occurrences_path: Path,
     output_path: Path|None = None,
-    boundary_path: Path = typer.Option("../data/raw/okinawa_boundary/N03-20250101_47.geojson"),
+    boundary_path: Path = typer.Option("data/raw/okinawa_boundary/N03-20250101_47.geojson"),
     mode: str = typer.Option("grid", help="'grid' or 'municipality'"),
     municipality_col: str = typer.Option("N03_004"),
     grid_size_m: int = typer.Option(5000),

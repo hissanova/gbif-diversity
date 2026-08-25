@@ -105,5 +105,6 @@ uv run python src/plot_map.py \
   --output-dir outputs/maps \
   --write-png
 ```
-PNGは指標ごとに個別のファイルとして出力されます。従来形式の指標別HTMLも必要な場合は、
-`--write-separate-html` を指定してください。
+PNGは、沖縄本島・八重山・宮古・大東の地域別パネルと共通カラーバーを一枚に配置し、
+`<指標名>_regions.png` という名前で指標ごとに出力されます。従来形式の指標別HTMLも
+必要な場合は、`--write-separate-html` を指定してください。
